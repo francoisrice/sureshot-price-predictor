@@ -1,6 +1,7 @@
 import sys
 from openbb import obb
 import numpy as np
+import scipy
 import os
 
 # Cache stock data for a day
@@ -52,6 +53,8 @@ class PricePredictor:
 
         stdDev = np.std(returns)
 
+        self.dailyVolatility = stdDev
+        self.avgReturn = np.mean(returns)
         self.volatility = stdDev * np.sqrt(252)
 
     def volatilityIsNone(self):
@@ -73,7 +76,7 @@ class PricePredictor:
             if self.volatilityIsNone():
                 self.calculate_volatility()
 
-            self.drift = self.volatility**2 / 2 + logRate
+            self.drift = self.dailyVolatility**2 / 2 + logRate
 
             # Add Interest rate
             # += fetch_interest_rate()
@@ -90,6 +93,7 @@ def main(args):
         inputPrice = float(args[2])
     else:
         probability = float(args[2])
+    timePeriod = args[3]  # DTE (Days to Expiration)
 
     # pp = PricePredictor("MARA")
     pp = PricePredictor(symbol)
@@ -101,27 +105,53 @@ def main(args):
     interestRate = 0.05
     # interestRate = fetch_interest_rate()
 
-    # calculate_mean_price()
-    # calculate_drift()
-    # calculate_volatility() -> std_dev
-
-    # Probability is probability based on std dev input price is away from mean price, factoring in drift
+    meanEndPrice = pp.currentPrice * (
+        (1 + interestRate) ** (timePeriod / 365) + np.exp(pp.drift * timePeriod)
+    )
+    periodVol = pp.dailyVolatility * np.sqrt(timePeriod)
     if inputPrice:
-        # Calculate probability of price being above inputPrice
-        zScore = (inputPrice - pp.currentPrice) / pp.volatility
-        probability = 1 - np.exp(-zScore)
-        print(probability)
+        # distribution = scipy.stats.norm(meanEndPrice, periodVol)
+        # probability = 1 - distribution.cdf(inputPrice)
+        zScore = (np.log(inputPrice / meanEndPrice) - pp.avgReturn) / periodVol
+
+        # Percent Chance that price gets above inputPrice
+        probability = 1 - scipy.stats.norm.cdf(zScore)
+        print(
+            str(probability)
+            + " Chance that price gets above "
+            + str(inputPrice)
+            + " in "
+            + str(timePeriod)
+            + " days."
+        )
+
     elif probability:
-        # Calculate prices based on probability
-        zScore = -np.log(1 - probability)
-        inputPrice = pp.currentPrice + zScore * pp.volatility
-        print(inputPrice)
+        zScoreA = scipy.stats.norm.ppf(1 - probability)
+        topPrice = np.exp(zScoreA * periodVol + pp.avgReturn) * meanEndPrice
+
+        zScoreB = scipy.stats.norm.ppf(probability)
+        bottomPrice = np.exp(zScoreB * periodVol + pp.avgReturn) * meanEndPrice
+
+        print(
+            str(probability)
+            + " Chance that price gets above "
+            + str(topPrice)
+            + " or below "
+            + str(bottomPrice)
+            + " in "
+            + str(timePeriod)
+            + " days."
+        )
+
     else:
         print("Must provide a price or a percent probability.")
 
 
 if __name__ == "__main__":
     """
-    Usage: python price-predictor.py <symbol> <price|probability>
+    Usage: python price-predictor.py <symbol> <price|probability> <daysToExpiration>
+    
+    What's the probability that the price of <symbol> will be above <price> in <daysToExpiration> days?
+    What price has a <probability> % chance of being above <price> in <daysToExpiration> days?
     """
     main(sys.argv)
