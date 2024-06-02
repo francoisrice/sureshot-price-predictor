@@ -1,0 +1,3 @@
+openbb
+scipy
+pytest

@@ -88,12 +88,15 @@ class PricePredictor:
 
 def main(args):
     print(args)
+    inputPrice = None
+    probability = None
+
     symbol = args[1]
-    if float(args[2]) > 0:
+    if float(args[2]) > 1:
         inputPrice = float(args[2])
     else:
         probability = float(args[2])
-    timePeriod = args[3]  # DTE (Days to Expiration)
+    timePeriod = int(args[3])  # DTE (Days to Expiration)
 
     # pp = PricePredictor("MARA")
     pp = PricePredictor(symbol)
@@ -133,8 +136,8 @@ def main(args):
         bottomPrice = np.exp(zScoreB * periodVol + pp.avgReturn) * meanEndPrice
 
         print(
-            str(probability)
-            + " Chance that price gets above "
+            str(int(probability*100))
+            + "% Chance that price gets above "
             + str(topPrice)
             + " or below "
             + str(bottomPrice)

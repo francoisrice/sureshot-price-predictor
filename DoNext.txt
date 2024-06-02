@@ -1,0 +1,5 @@
+- Use Sample data, Calculate probability/prices by hand, Lock in with tests using pytest
+- Add caching of data for openbb pulls on the same data
+
+
+(Optional: Pull current interest rate from OpenBB (risk-free interest rate or yield on 90 day bond))

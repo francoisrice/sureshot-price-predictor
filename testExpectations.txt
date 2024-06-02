@@ -1,0 +1,17 @@
+With MARA_062024weekend:
+    - current price: 19.58
+    - 21.00 should be 50% chance or mean (because of drift)
+    - 19.56 should 70% chance to be above
+    - 22.61 should be 30% chance to be above 
+    ----------------
+    - $19.50 (short put) -0.4656 Delta & 0.1572 Gamma
+    - $20.00 (short put) -0.5433 Delta & 0.1564 Gamma
+    - $20.50 (short put) -0.6150 Delta & 0.1482 Gamma
+    - $21.00 (short put) -0.6774 Delta & 0.3153 Gamma
+    - $19.00 (short put) -0.3870 Delta & 0.1516 Gamma
+    - $18.50 (short put) -0.3091 Delta & 0.1413 Gamma
+    - $18.00 (short put) -0.2375 Delta & 0.1243 Gamma
+    ----------------
+    - $20.00 (short call) 0.4564 Delta & 0.1573 Gamma
+    - $19.50 (short call) 0.5345 Delta & 0.1579 Gamma
+    - Assume short call:short put parity...
