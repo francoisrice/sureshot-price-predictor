@@ -11,8 +11,6 @@ import os
 class PricePredictor:
     # Note: Fetched stock data has a daily interval
 
-    obb.account.login(pat=os.environ["OPENBB_KEY"])
-
     def __init__(self, symbol="") -> None:
         self.symbol = symbol
 
@@ -64,14 +62,9 @@ class PricePredictor:
         prices = self.stockData.to_list()
 
         if prices:
-            if len(prices) > 21:
-                logRate = (
-                    np.log(prices[-1] / prices[-21])
-                ) / 21  # price change in the last month
-            else:
-                logRate = (np.log(prices[-1] / prices[0])) / len(
-                    prices
-                )  # price change over the available data
+            logRate = (np.log(prices[-1] / prices[0])) / len(
+                prices
+            )  # price change over the available data
 
             if self.volatilityIsNone():
                 self.calculate_volatility()
@@ -87,6 +80,7 @@ class PricePredictor:
 
 
 def main(args):
+    obb.account.login(pat=os.environ["OPENBB_KEY"])
     print(args)
     inputPrice = None
     probability = None
@@ -109,7 +103,7 @@ def main(args):
     # interestRate = fetch_interest_rate()
 
     meanEndPrice = pp.currentPrice * (
-        (1 + interestRate) ** (timePeriod / 365) + np.exp(pp.drift * timePeriod)
+        (1 + interestRate) ** (timePeriod / 365) * np.exp(pp.drift * timePeriod)
     )
     periodVol = pp.dailyVolatility * np.sqrt(timePeriod)
     if inputPrice:
